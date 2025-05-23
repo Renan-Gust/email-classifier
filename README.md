@@ -13,7 +13,7 @@ $ cd email-classifier
 $ pip install -r requirements.txt
 ```
 
-### Configure a chave da OpenAI no env:
+### Configure a chave da OpenAI:
 > Duplique o .env.example e renomeie o próprio para .env e adicione sua chave da OpenAI
 
 ### Download da pasta nltk_data:

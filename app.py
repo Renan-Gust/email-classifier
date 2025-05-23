@@ -11,8 +11,6 @@ from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
@@ -27,8 +25,8 @@ def preprocess_text(text):
 
     return ' '.join(filtered_tokens)
 
-def extract_text_from_pdf(filepath):
-    with pdfplumber.open(filepath) as pdf:
+def extract_text_from_pdf(file):
+    with pdfplumber.open(file) as pdf:
         return '\n'.join([page.extract_text() for page in pdf.pages if page.extract_text()])
 
 def classify_email(text):
@@ -63,7 +61,6 @@ def process():
     text = ''
     emailtype = None
     filename = None
-    file_url = None
 
     if 'emailtext' in request.form and request.form['emailtext'].strip():
         text = request.form['emailtext'].strip()
@@ -76,17 +73,12 @@ def process():
             ext = os.path.splitext(filename)[1].lower()
 
             if ext in ['.pdf', '.txt']:
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(filepath)
-
                 if ext == '.pdf':
-                    text = extract_text_from_pdf(filepath)
+                    text = extract_text_from_pdf(file.stream)
                 elif ext == '.txt':
-                    with open(filepath, 'r', encoding='utf-8') as f:
-                        text = f.read()
+                    text = file.stream.read().decode('utf-8')
 
                 emailtype = 'file'
-                file_url = f"/static/uploads/{filename}"
             else:
                 return jsonify({'success': False, 'message': 'Formato de arquivo não suportado. Envie um .pdf ou .txt'}), 400
     else:
@@ -100,7 +92,7 @@ def process():
         'success': True,
         'result': {
             'emailtype': emailtype,
-            'originalEmail': text if emailtype == 'text' else file_url,
+            'originalEmail': text if emailtype == 'text' else filename,
             'category': category,
             'response': response
         }

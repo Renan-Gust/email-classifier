@@ -2,6 +2,8 @@ const switchButtons = document.querySelectorAll("#switch-send button");
 const uploadFileInput = document.querySelector('#file-upload');
 const text = document.querySelector("#send-by-text");
 const submitButton = document.querySelector("#submit");
+const descriptionElement = document.querySelector('#send-by-upload .description');
+const filenameElement = document.querySelector('#send-by-upload .filename');
 
 switchButtons.forEach((button) => {
     button.addEventListener('click', () => {
@@ -23,8 +25,6 @@ uploadFileInput.addEventListener('change', () => {
     if (!file) return;
 
     const borderElement = document.querySelector('#send-by-upload label');
-    const descriptionElement = document.querySelector('#send-by-upload .description');
-    const filenameElement = document.querySelector('#send-by-upload .filename')
 
     const filename = file.name.toLowerCase();
 
@@ -90,10 +90,24 @@ async function submit(file, text){
         });
 
         const data = await response.json();
-        console.log(data);
 
         if(data.success){
             saveResult(data.result);
+
+            uploadFileInput.value = '';
+            text.value = '';
+
+            descriptionElement.classList.remove('hidden');
+            filenameElement.classList.add('hidden');
+            filenameElement.textContent = '';
+
+            submitButton.disabled = true;
+
+            Toastify({
+                text: 'Sucesso!',
+                close: true,
+                style: { background: "green" },
+            }).showToast();
         } else{
             Toastify({
                 text: data.message,
@@ -109,7 +123,6 @@ async function submit(file, text){
             style: { background: "red" },
         }).showToast();
     } finally{
-        submitButton.disabled = false;
         submitButton.querySelector('span').textContent = 'Enviar';
         submitButton.querySelector('svg').classList.add('hidden');
     }
@@ -132,15 +145,6 @@ function showResults(){
         container.innerHTML = '';
 
         savedResults.map((result, index) => {
-            let content;
-
-            if(result.emailtype === 'text'){
-                content = result.originalEmail;
-            } else{
-                const filename = result.originalEmail.split("/").pop();
-                content = `<a href="${result.originalEmail}" target="_blank" class="underline text-blue-500">${filename}</a>`;
-            }
-
             container.innerHTML += `
             <div
                 class="bg-blue-200 hover:bg-blue-300 w-[265px] md:w-[623px] lg:w-full h-[130px] rounded-lg cursor-pointer transition-all px-4 py-2 overflow-auto lg:overflow-hidden"
@@ -148,7 +152,7 @@ function showResults(){
             >
                 <div class="flex gap-[6px]">
                     <strong class="tracking-wide">Corpo do email: </strong>
-                    <span class="tracking-wide truncate block flex-1">${content}</span>
+                    <span class="tracking-wide truncate block flex-1">${result.originalEmail}</span>
                 </div>
                 <div>
                     <strong class="tracking-wide">Categoria: </strong>
@@ -174,13 +178,7 @@ function showCompleteResult(index){
     const category = document.querySelector("#dialog .category");
     const response = document.querySelector("#dialog .response");
 
-    if(savedResult.emailtype === 'text'){
-        emailContent.textContent = savedResult.originalEmail
-    } else{
-        const filename = savedResult.originalEmail.split("/").pop();
-        emailContent.innerHTML = `<a href="${savedResult.originalEmail}" target="_blank" class="underline text-blue-500">${filename}</a>`;
-    }
-
+    emailContent.textContent = savedResult.originalEmail
     category.textContent = savedResult.category;
     response.textContent = savedResult.response;
 }
