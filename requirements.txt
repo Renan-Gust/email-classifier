@@ -1,0 +1,4 @@
+Flask
+pdfplumber
+nltk
+pip install "transformers[torch]"
