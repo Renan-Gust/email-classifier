@@ -1,10 +1,11 @@
 from flask import Flask, request, render_template, jsonify
 from werkzeug.utils import secure_filename
+from dotenv import load_dotenv
+from openai import OpenAI
 import os, pdfplumber, nltk, string, requests
+nltk.data.path.append("./nltk_data")
 
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('omw-1.4')
+load_dotenv()
 
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -13,7 +14,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-headers = {"Authorization": "Bearer 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"}
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 def preprocess_text(text):
     text = text.lower()
@@ -30,40 +31,27 @@ def extract_text_from_pdf(filepath):
         return '\n'.join([page.extract_text() for page in pdf.pages if page.extract_text()])
 
 def classify_email(text):
-    url = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
+    prompt = f"Classifique o seguinte email como 'Produtivo' ou 'Improdutivo'.\nEmail: {text}"
 
-    payload = {
-        "inputs": text,
-        "parameters": {
-            "candidate_labels": ["Produtivo", "Improdutivo"]
-        }
-    }
+    response = client.responses.create(
+        model="gpt-3.5-turbo",
+        instructions="Você é um assistente que classifica emails. Responda apenas com uma das palavras, sem explicação.",
+        input=prompt
+    )
 
-    response = requests.post(url, headers=headers, json=payload)
-    result = response.json()
-
-    return result["labels"][0]
+    return response.output_text
 
 def generate_response(text, category):
-    url = "https://api-inference.huggingface.co/models/gpt2"  # ou "distilgpt2"
-    headers = {"Authorization": "Bearer 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"}
+    prompt = f"O seguinte email foi classificado como '{category}'. Escreva uma resposta, respondendo adequadamente ao conteúdo abaixo.\nEmail: {text}\n"
 
-    prompt = f"O seguinte email foi classificado como '{category}'. Escreva uma resposta curta e objetiva, respondendo adequadamente ao conteúdo abaixo. Email: {text} Resposta:"
-    payload = {
-        "inputs": prompt,
-        "parameters": {
-            "max_new_tokens": 100,
-            "temperature": 0.7,
-            "do_sample": True
-        }
-    }
+    response = client.responses.create(
+        model="gpt-3.5-turbo",
+        instructions="Você escreve respostas para emails.",
+        input=prompt,
+        temperature=0.7,
+    )
 
-    response = requests.post(url, headers=headers, json=payload)
-    if response.status_code == 200:
-        return response.json()[0]["generated_text"]
-    else:
-        print(f"Erro: {response.status_code} - {response.text}")
-        return ""
+    return response.output_text
 
 @app.route('/')
 def init():
@@ -100,8 +88,6 @@ def process():
                 file_url = f"/static/uploads/{filename}"
             else:
                 return jsonify({'success': False, 'message': 'Formato de arquivo não suportado. Envie um .pdf ou .txt'}), 400
-        # else:
-            # return jsonify({'success': False, 'message': 'Arquivo inválido ou ausente.'}), 400
     else:
         return jsonify({'success': False, 'message': 'Nenhum conteúdo fornecido.'}), 400
 
@@ -118,6 +104,3 @@ def process():
             'response': response
         }
     })
-
-if __name__ == "__main__":
-    app.run()

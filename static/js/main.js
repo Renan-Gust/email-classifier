@@ -132,6 +132,15 @@ function showResults(){
         container.innerHTML = '';
 
         savedResults.map((result, index) => {
+            let content;
+
+            if(result.emailtype === 'text'){
+                content = result.originalEmail;
+            } else{
+                const filename = result.originalEmail.split("/").pop();
+                content = `<a href="${result.originalEmail}" target="_blank" class="underline text-blue-500">${filename}</a>`;
+            }
+
             container.innerHTML += `
             <div
                 class="bg-blue-200 hover:bg-blue-300 w-[265px] md:w-[623px] lg:w-full h-[130px] rounded-lg cursor-pointer transition-all px-4 py-2 overflow-auto lg:overflow-hidden"
@@ -139,7 +148,7 @@ function showResults(){
             >
                 <div class="flex gap-[6px]">
                     <strong class="tracking-wide">Corpo do email: </strong>
-                    <span class="tracking-wide truncate block flex-1">${result.emailtype === 'text' ? result.originalEmail : 'file'}</span>
+                    <span class="tracking-wide truncate block flex-1">${content}</span>
                 </div>
                 <div>
                     <strong class="tracking-wide">Categoria: </strong>
@@ -168,7 +177,8 @@ function showCompleteResult(index){
     if(savedResult.emailtype === 'text'){
         emailContent.textContent = savedResult.originalEmail
     } else{
-        emailContent.innerHTML = `<a href="${savedResult.originalEmail}" target="_blank">${savedResult.originalEmail}</a>`;
+        const filename = savedResult.originalEmail.split("/").pop();
+        emailContent.innerHTML = `<a href="${savedResult.originalEmail}" target="_blank" class="underline text-blue-500">${filename}</a>`;
     }
 
     category.textContent = savedResult.category;
