@@ -1,0 +1,3 @@
+/static/uploads/*
+.vercel
+__pycache__
