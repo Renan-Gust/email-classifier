@@ -8,7 +8,7 @@ nltk.data.path.append("./nltk_data")
 load_dotenv()
 
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import RegexpTokenizer
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -19,7 +19,8 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 def preprocess_text(text):
     text = text.lower()
     text = text.translate(str.maketrans('', '', string.punctuation))
-    tokens = word_tokenize(text)
+    tokenizer = RegexpTokenizer(r'\w+')
+    tokens = tokenizer.tokenize(text)
     stop_words = set(stopwords.words('portuguese'))
     
     filtered_tokens = [word for word in tokens if word not in stop_words]

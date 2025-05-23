@@ -1,7 +1,30 @@
-1. Instale as dependências: pip install -r requirements.txt
-2. Coloque sua chave da OpenAI no app.py
-3. Execute: python app.py
-4. Acesse via http://localhost:5000
+## 🚀 Execução do projeto
 
+Clone o projeto e acesse a pasta do mesmo.
 
-python -m nltk.downloader -d ./nltk_data punkt stopwords omw-1.4
+```bash
+$ git clone git@github.com:Renan-Gust/email-classifier.git
+$ cd email-classifier
+```
+
+### Instale as dependências
+
+```bash
+$ pip install -r requirements.txt
+```
+
+### Configure a chave da OpenAI no env:
+> Duplique o .env.example e renomeie o próprio para .env e adicione sua chave da OpenAI
+
+### Download da pasta nltk_data:
+> Caso nao tenha a pasta nltk_data no projeto execute o comando abaixo para cria-la
+```bash
+$ python -m nltk.downloader -d ./nltk_data stopwords omw-1.4
+```
+
+### Rode o projeto:
+```bash
+$ flask run
+```
+
+O projeto estará disponível no seu browser pelo endereço Acesse via http://localhost:5000
