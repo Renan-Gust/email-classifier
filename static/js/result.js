@@ -49,11 +49,10 @@ function updateElementsFunctions(){
     closeModal = document.querySelectorAll("#dialog .close-modal");
     copyResponseButton = document.querySelector("#dialog .copy-response");
 
-    results.forEach((item, index) => item.addEventListener('click', () => showCompleteResult(index)));
+    Array.from(results).reverse().forEach((item, index) => item.addEventListener('click', () => showCompleteResult(index)));
     closeModal.forEach(item => item.addEventListener('click', (event) => closeCompleteResult(event)));
     copyResponseButton.addEventListener("click", (event) => copyResponse(event));
 }
-
 
 function showCompleteResult(index){
     document.querySelectorAll('[aria-hidden]').forEach(item => item.setAttribute('aria-hidden', false));
